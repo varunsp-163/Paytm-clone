@@ -5,6 +5,7 @@ const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const { User } = require("../db");
+const { authMiddleware } = require("../middleware");
 
 // signIn route
 // use zod validation
@@ -77,16 +78,69 @@ router.post("/signup", async (req, res) => {
   });
 
   const userId = user._id;
+
+  // creating a new user (using random balance)
+
+  await Account.create({
+    userId,
+    balance: 1 + Math.random() * 10000,
+  });
+
   const token = jwt.sign({ userId }, JWT_SECRET);
   res.json.status({
     message: "User was created successfully",
     token,
   });
-  
 });
 
-// update
-app.get("/getProfile", {});
-app.post("/updateProfile", {});
+// update the profile
+const updateBody = zod.object({
+  password: zod.string().optional(),
+  firstName: zod.string().optional(),
+  lastName: zod.string().optional(),
+});
+
+router.put("/updateProfile", authMiddleware, async (req, res) => {
+  const { success } = updateBody.safeParse(req.body);
+  if (!success) {
+    res.status(411).json({
+      message: "Error in updating the user details",
+    });
+  }
+
+  await User.updateOne(req.body, {
+    _id: req.userId,
+  });
+  res.status(200).json({
+    message: "Updated the profile",
+  });
+});
+
+router.get("/getProfile", authMiddleware, async (req, res) => {
+  const filter = req.query.filter || "";
+
+  const users = await User.find({
+    $or: [
+      {
+        firstName: {
+          $regex: filter,
+        },
+      },
+      {
+        lastName: {
+          $regex: filter,
+        },
+      },
+    ],
+  });
+  res.json({
+    user: users.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    })),
+  });
+});
 
 module.exports = router;

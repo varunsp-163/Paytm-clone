@@ -1,8 +1,10 @@
 const mongoose = require("mongoose");
 
-mongoose.connect(
-  "mongodb+srv://spvarun47:123123123@gpt-app.sbaqyub.mongodb.net/PaytmClone"
-);
+const { MONGODB_CONNECTION } = require("./config");
+
+mongoose.connect(MONGODB_CONNECTION);
+
+// the schema for user
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -35,6 +37,23 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 
+// schema for user's account
+
+const userAccount = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  balance: {
+    type: Number,
+    required: true,
+  },
+});
+
+const UserAccount = mongoose.model("UserAccount", userAccount);
+
 module.exports = {
   User,
+  UserAccount,
 };

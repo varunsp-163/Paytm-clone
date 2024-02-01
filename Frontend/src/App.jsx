@@ -1,10 +1,16 @@
 import "./App.css";
-
+import { SignIn, SignUp, Dashboard, Send } from "./components";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 function App() {
   return (
-    <>
-      <h1 className="text-red-400">Hello world</h1>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<SignIn />} />
+        <Route path="/signIn" element={<SignUp />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/send" element={<Send />} />
+      </Routes>
+    </Router>
   );
 }
 
